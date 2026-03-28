@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>グランドゴルフ チーム分け</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; background-color: #f0f8ff; color: #333; }
+        h1 { text-align: center; color: #2e8b57; font-size: 1.5rem; }
+        .member-list { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .member-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px dotted #ccc; font-size: 1.2rem; cursor: pointer; }
+        input[type="checkbox"] { transform: scale(1.8); margin-right: 15px; }
+        button { width: 100%; padding: 15px; margin-top: 20px; background-color: #2e8b57; color: white; border: none; border-radius: 5px; font-size: 1.3rem; font-weight: bold; cursor: pointer; }
+        #result { margin-top: 20px; padding: 15px; background: #fff; border-radius: 10px; border: 2px solid #2e8b57; display: none; }
+        .team-box { margin-bottom: 15px; padding: 10px; border-left: 5px solid #2e8b57; background: #f9f9f9; }
+        .team-title { font-weight: bold; color: #2e8b57; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+<h1>グラウンドゴルフ会<br>チーム分け</h1>
+<div class="member-list" id="memberList"></div>
+<button onclick="generateTeams()">チーム分けする</button>
+<div id="result"></div>
+<script>
+    const members = ["須郷", "藤渕", "朝倉", "瀬川", "竹田", "佐藤", "小林喜代子", "小林和子", "永井", "方波見廣", "方波見久子", "渡辺", "田村", "金沢"];
+    const ngPairs = [["方波見廣", "小林和子"], ["方波見廣", "永井"], ["方波見廣", "渡辺"], ["小林和子", "渡辺"]];
+    const listDiv = document.getElementById('memberList');
+    members.forEach(name => {
+        const div = document.createElement('div');
+        div.className = 'member-item';
+        div.innerHTML = `<label style="display:flex; align-items:center; width:100%;"><input type="checkbox" value="${name}" checked> ${name}</label>`;
+        listDiv.appendChild(div);
+    });
+    function generateTeams() {
+        const checkedBoxes = document.querySelectorAll('input[type="checkbox"]:checked');
+        let selectedMembers = Array.from(checkedBoxes).map(cb => cb.value);
+        if (selectedMembers.length < 3) { alert("3人以上選んでください。"); return; }
+        let resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        let success = false; let teams = []; let attempts = 0;
+        while (!success && attempts < 1000) {
+            attempts++;
+            teams = splitIntoTeams(selectedMembers);
+            if (checkNG(teams)) success = true;
+        }
+        displayResults(teams);
+    }
+    function splitIntoTeams(list) {
+        let shuffled = [...list].sort(() => Math.random() - 0.5);
+        let numTeams = Math.ceil(shuffled.length / (shuffled.length >= 12 ? 4 : 3));
+        let result = Array.from({ length: numTeams }, () => []);
+        shuffled.forEach((name, index) => result[index % numTeams].push(name));
+        return result;
+    }
+    function checkNG(teams) {
+        for (let team of teams) {
+            for (let pair of ngPairs) {
+                if (team.includes(pair[0]) && team.includes(pair[1])) return false;
+            }
+        }
+        return true;
+    }
+    function displayResults(teams) {
+        let html = '<h2>結果</h2>';
+        teams.forEach((team, i) => {
+            html += `<div class="team-box"><div class="team-title">${i + 1}組 (${team.length}名)</div><div>${team.join('、 ')}</div></div>`;
+        });
+        document.getElementById('result').innerHTML = html;
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+</script>
+</body>
+</html>
